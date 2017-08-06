@@ -505,7 +505,7 @@ static int find_fde(uint64_t rip, eh_cie* cie_out, eh_fde* fde_out) {
     memset(&fde, 0, sizeof(eh_fde));
     fde.cie = &current_cie;
     if (read_fde(&subhead, &fde)) { return -1; }
-    if (rip >= fde.pc_begin && rip - fde.pc_begin < fde.pc_len) {
+    if (rip >= fde.pc_begin && rip - fde.pc_begin <= fde.pc_len) {
       *cie_out = current_cie;
       fde.cie = cie_out;
       *fde_out = fde;
@@ -546,7 +546,7 @@ void gen_backtrace(uint64_t rsp, uint64_t rip, uint64_t rbp) {
 
     int ret = find_fde(rip, &cie, &fde);
     if (ret == 1) {
-      com_printf("(Top of stack frame)\n");
+      com_printf("(Top-of-stack frame)\n");
       return;
     } else if (ret) {
       com_printf("Error encountered! Sorry.\n");

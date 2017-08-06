@@ -144,3 +144,70 @@ pf_isr:
 	call pagefault_handler
 	pop_caller_save_reg
 	iretq
+end_pf_isr:
+
+
+/* Unwind information for pf_isr */
+    .section .eh_frame
+    .align 8
+cie_start:
+    .long cie_end - cie_start - 0x04 /* length of CIE */
+    .long 0x00000000  /* CIE 'magic' */
+    .byte 0x01        /* CIE version */
+    .byte 'z'         /* Augmentation data = zR\0 */
+    .byte 'R'
+    .byte 0x00
+    .byte 0x01        /* Code alignment = 1 */
+    .word 0x1078      /* Data alignment = -8 */
+    .byte 0x01        /* Augmentation data length */
+    .byte 0x1b        /* Pointer encoding: relative, signed 32 */
+    .byte 0x0c        /* Start of initial instructions: Define CFA [...] */
+    .word 0x0807      /* [...] CFA = r7 (rsp) + 8 */
+    .word 0x0190      /* r16 (rip) = CFA + 1 * (-8) */
+    .align 8
+cie_end:
+    .long end_eh_frame - . - 0x04
+    .long . - cie_start /* CIE pointer */
+    .reloc ., R_X86_64_PC32, .text + (pf_isr - .text)
+    .long 0x00000000    /* filled by reloc */
+    .long end_pf_isr - pf_isr
+    .byte 0x00          /* Aug data */
+    .word 0x200e        /* CFA = rsp+32 */
+    .word 0x0390        /* rip @ CFA-24 */
+    .byte 0x41          /* advance 1 */
+    .word 0x280e        /* CFA = rsp+40 */
+    .byte 0x41          /* [...] */
+    .word 0x300e
+    .byte 0x41
+    .word 0x380e
+    .byte 0x41
+    .word 0x400e
+    .byte 0x41
+    .word 0x480e
+    .byte 0x42          /* Some pushes are 2 bytes */
+    .word 0x500e
+    .byte 0x42
+    .word 0x580e
+    .byte 0x42
+    .word 0x600e
+    .byte 0x42
+    .word 0x680e        /* CFA = rsp+104 */
+    .byte 0x4a          /* advance 10 (past 'call') */
+    .word 0x600e        /* CFA = rsp+96 */
+    .byte 0x42          /* advance 2 */
+    .word 0x580e        /* [...] */
+    .byte 0x42
+    .word 0x500e
+    .byte 0x42
+    .word 0x480e
+    .byte 0x41
+    .word 0x400e
+    .byte 0x41
+    .word 0x380e
+    .byte 0x41
+    .word 0x300e
+    .byte 0x41
+    .word 0x280e
+    .byte 0x41
+    .align 8
+end_eh_frame:
