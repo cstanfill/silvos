@@ -1,9 +1,9 @@
 #ifndef __SILVOS_THREADS_H
 #define __SILVOS_THREADS_H
 
-#include "ipc.h"
 #include "list.h"
 #include "page.h"
+#include "syscall-defs.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -24,8 +24,8 @@ enum fpu_state {
 
 enum ipc_state {
   IPC_NOT_RECEIVING,
-  IPC_RECEIVING,      /* currently waiting for an ipc message */
-  IPC_RECEIVED,       /* in the middle of receiving an ipc handoff */
+  IPC_CALLING,        /* currently waiting for a response */
+  IPC_DAEMON,         /* currently waiting for a call */
 };
 
 typedef struct {
@@ -79,7 +79,7 @@ typedef struct {
   enum fpu_state fpu_state;
   char (*fpu_buf)[512];
   enum ipc_state ipc_state;
-  ipc_msg inbox;  /* Only valid if ipc_state is RECEIVED */
+  uint8_t callee;  /* Only valid if IPC_CALLING */
 } tcb;
 
 /* Pointer to the TCB of the running userspace thread, or NULL if currently
