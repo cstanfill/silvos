@@ -14,6 +14,6 @@ void spawn_multiboot_modules (multiboot_module *mod_list, uint32_t length);
 
 /* Find the TCB entry corresponding to the initial process spawned from a
  * specific multiboot module. */
-int find_module(const char* name);
+int find_module (const char *name);
 
 #endif
