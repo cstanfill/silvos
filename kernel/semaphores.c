@@ -70,6 +70,10 @@ int sem_watch (semaphore_id id) {
       sem->state = SEM_WATCHED;
       break;
     case SEM_SET:
+      /* Figure out if we were already watching this sem. */
+      if (!list_empty(&sem->ready_sem)) {
+        return 0;
+      }
       list_push_back(&sem->ready_sem, &running_tcb->ready_sems);
       break;
   }
@@ -87,10 +91,6 @@ int sem_unwatch (semaphore_id id) {
       sem->state = SEM_IDLE;
       break;
     case SEM_SET:
-      /* Figure out if we were actually watching this sem. */
-      if (list_empty(&sem->ready_sem)) {
-        return -2;
-      }
       list_remove(&sem->ready_sem);
       break;
   }
