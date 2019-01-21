@@ -32,10 +32,10 @@ static const char *split_fname (const char *full_path) {
   return current_guess;
 }
 
-int find_module (const char *usr_name) {
-  char name[4096];
-  if (copy_string_from_user(name, usr_name, sizeof(name))) return -1;
-  name[4095] = 0;  /* in case of truncation */
+int find_module (const char *name) {
+  char buf[4096];
+  if (copy_string_from_user(buf, name, sizeof(buf))) return -1;
+  buf[4095] = 0;  /* in case of truncation */
   size_t n = strlen(name);
   for (uint32_t i = 0; i < num_modules; ++i) {
     if (strncmp(name, modules[i].name, n)) continue;
