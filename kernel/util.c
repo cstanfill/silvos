@@ -39,12 +39,12 @@ uint64_t strlen (const char *s) {
 }
 
 char *strncpy (char *dest, const char *src, size_t n) {
-  for (size_t i = 0; i < n; ++i) {
-    if (dest[i] == 0) {
-      memset(dest + i, 0, n - i);
-      return dest;
-    }
+  size_t i;
+  for (i = 0; i < n && src[i] != '\0'; ++i) {
     dest[i] = src[i];
+  }
+  for (; i < n; ++i) {
+    dest[i] = '\0';
   }
   /* No trailing null byte on truncation, as per <string.h> */
   return dest;
