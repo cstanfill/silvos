@@ -12,7 +12,7 @@ ipc_msg respond2(ipc_msg send) {
   return op.recv;
 }
 
-void service(uint64_t parent_tid, uint64_t worker_pid) {
+void service(uint64_t worker_pid) {
   char inbox[BUFSIZE];
   size_t in_head = 0;
   size_t in_tail = 0;
@@ -29,7 +29,7 @@ void service(uint64_t parent_tid, uint64_t worker_pid) {
   size_t out_ix = 0;
   memset(outbox, '\0', sizeof(outbox));
 
-  ipc_msg _response = { .addr = parent_tid };
+  ipc_msg _response = { .addr = 0 };
   ipc_msg* const response = &_response;
   while (1) {
     const ipc_msg request = respond2(*response);
@@ -93,7 +93,7 @@ void service(uint64_t parent_tid, uint64_t worker_pid) {
 void worker (uint64_t service_tid) {
   sendrecv_op op;
   while (1) {
-    char c = getch();
+    char c = _getch();
     op.send.addr = service_tid;
     op.send.r1 = c;
     op.send.r2 = 0;
@@ -104,66 +104,16 @@ void worker (uint64_t service_tid) {
   }
 }
 
-char ul_getch(uint64_t service_tid) {
-  static semaphore_id sem = 0;
-  if (sem == 0) {
-    sem = sem_create();
-  }
-  assert(sem != 0);
-  while (1) {
-    sendrecv_op op = {
-      .send = {
-        .addr = service_tid,
-        .r1 = 0,
-        .r2 = sem,
-      },
-    };
-    assert(call(&op) == MESSAGE_RECEIVED);
-    assert(op.recv.addr == service_tid);
-    assert(((int64_t)op.recv.r1) >= 0);
-    if (op.recv.r1 == 0) {
-      /* Character was already waiting */
-      return op.recv.r2;
-    }
-    uint64_t ix = op.recv.r2;
-
-    assert(sem_watch(sem) == 0);
-    semaphore_id s = sem_wait();
-    assert(s == sem);
-    sem_unwatch(sem);
-
-    op.send.r1 = 1;
-    op.send.r2 = ix;
-
-    assert(call(&op) == MESSAGE_RECEIVED);
-    if ((int64_t)op.recv.r2 < 0) {
-      debug("PICKUP RPC FAILED IN CLIENT - TIMEOUT?");
-      yield();
-      continue;
-    }
-    return (char)op.recv.r2;
-  }
-}
-
 void main() {
-  uint64_t root_tid = get_tid();
-  sendrecv_op op;
-  assert(fork_daemon(&op) == MESSAGE_RECEIVED);
-  if (op.recv.addr == root_tid) {
-    /* Child */
-    uint64_t listener_pid = get_tid();
-    uint64_t fret = fork();
-    if (fret == 0) {
-      /* Worker child */
-      worker(listener_pid);
-    } else {
-      /* Listener child */
-      uint64_t worker_pid = fret;
-      service(root_tid, worker_pid);
-    }
-    return;
-  }
-  while (1) {
-    putch(ul_getch(op.recv.addr));
+  /* Child */
+  uint64_t listener_pid = get_tid();
+  uint64_t fret = fork();
+  if (fret == 0) {
+    /* Worker child */
+    worker(listener_pid);
+  } else {
+    /* Listener child */
+    uint64_t worker_pid = fret;
+    service(worker_pid);
   }
 }

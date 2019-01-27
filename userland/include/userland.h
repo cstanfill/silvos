@@ -56,7 +56,7 @@ static inline void __attribute ((noreturn)) exit (void) {
   while (1); /* SYSCALL_EXIT does not return. */
 }
 
-static inline char getch (void) {
+static inline char _getch (void) {
   return (char)__syscall0(SYSCALL_GETCH);
 }
 

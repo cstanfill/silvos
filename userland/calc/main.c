@@ -1,4 +1,5 @@
 #include "userland.h"
+#include "userland-lib.h"
 
 void erase(unsigned int n) {
   do {

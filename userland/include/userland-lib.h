@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "userland.h"
+#define assert(x) if (!(x)) { debug_printf("assert at %s:%d failed: %s", __FILE__, __LINE__, #x); exit(); }
 
 static inline uint8_t __xchg(uint8_t *l, uint8_t v) {
   __asm__ volatile ("xchg %0, %1" : "+q"(v) : "m"(*l));
@@ -20,5 +21,7 @@ static inline uint8_t unlock(uint8_t *l) {
 }
 
 int debug_printf (const char *fmt, ...);
+
+char getch();
 
 #endif
