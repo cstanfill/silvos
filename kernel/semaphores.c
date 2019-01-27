@@ -128,6 +128,7 @@ void __attribute__((noreturn)) sem_wait (void) {
 
 int sem_set(semaphore_id id) {
   semaphore* sem = find_semaphore(id);
+  if (sem == 0) return -1;
   if (sem->owner == 0) return -1;
   tcb* owner = get_tcb(sem->owner);
   if (!owner) return -1;
